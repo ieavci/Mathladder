@@ -1,153 +1,41 @@
 package com.example.arcore
 
 import android.os.Bundle
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import com.example.arcore.ui.theme.ARCoreTheme
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
 import com.google.ar.core.Config
 import io.github.sceneview.ar.ARScene
 import io.github.sceneview.ar.node.ArModelNode
-import io.github.sceneview.ar.node.PlacementMode
-import androidx.compose.ui.platform.LocalContext
-import com.google.android.filament.Engine
+import io.github.sceneview.ar.ArSceneView
+import io.github.sceneview.math.Position
 import kotlin.random.Random
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            ARCoreTheme {
-                Surface(
-                    modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.background
-                ) {
-                    Box(modifier = Modifier.fillMaxSize()) {
-                        ARGameScreen()
-                    }
-                }
-            }
+            ARGameScreen()
         }
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun ARGameScreen() {
-    val context = LocalContext.current
-    val nodes = remember { mutableStateListOf<ArModelNode>() }
-    var currentNumber by remember { mutableStateOf(17) }
-    var currentOperation by remember { mutableStateOf(generateRandomOperation(currentNumber)) }
-    var userInput by remember { mutableStateOf("") }
-    var toastMessage by remember { mutableStateOf<String?>(null) }
-    var bubbles by remember { mutableStateOf(0) } // Baloncuk sayısı
-    var gameEnded by remember { mutableStateOf(false) }
+const val MAX_NUMBER = 99
+const val TARGET_BUBBLES = 5
 
-    Box(modifier = Modifier.fillMaxSize()) {
-        var engine: Engine? = null // Global bir değişken tanımlayın.
-
-        ARScene(
-            modifier = Modifier.fillMaxSize(),
-            nodes = nodes,
-            planeRenderer = true,
-            onCreate = { arSceneView ->
-                engine = arSceneView.engine // `Engine` nesnesini burada alın.
-                arSceneView.lightEstimationMode = Config.LightEstimationMode.DISABLED
-                arSceneView.planeRenderer.isShadowReceiver = false
-            },
-            onSessionCreate = {
-                planeRenderer.isVisible = false
-            }
-        )
-
-        // 3 Boyutlu Mevcut Sayıyı Göster
-        LaunchedEffect(currentNumber) {
-            nodes.clear()
-            engine?.let { engineInstance -> // `engine` null değilse çağır
-                val numberNode = create3DNumberModel(engineInstance, currentNumber) // Hem Engine hem de number geçiliyor
-                nodes.add(numberNode)
-            }
-
-        }
-
-        // 3 Boyutlu İşlemi Göster
-        LaunchedEffect(currentOperation) {
-            engine?.let { engineInstance ->
-                val operationNode = create3DOperationModel(engineInstance, currentOperation)
-                nodes.add(operationNode)
-            }
-
-        }
-
-        // Kullanıcı cevabını değerlendirme
-        Box(
-            modifier = Modifier.fillMaxSize(),
-            contentAlignment = Alignment.BottomCenter
-        ) {
-            androidx.compose.material3.TextField(
-                value = userInput,
-                onValueChange = { userInput = it },
-                label = { androidx.compose.material3.Text("Sonuç Girin") }
-            )
-            androidx.compose.material3.Button(onClick = {
-                if (gameEnded) return@Button
-
-                val correctAnswer = calculateOperation(currentNumber, currentOperation)
-                if (userInput.toIntOrNull() == correctAnswer) {
-                    // Doğru cevap
-                    toastMessage = "Doğru! Yeni sayınız: $correctAnswer"
-                    currentNumber = correctAnswer
-                    currentOperation = generateRandomOperation(currentNumber)
-                    bubbles++
-
-                    // Baloncuk modeli ekle
-                    engine?.let { engineInstance ->
-                        val bubbleNode = create3DBubbleModel(engineInstance, bubbles)
-                        nodes.add(bubbleNode)
-                    }
-
-
-                    if (bubbles >= 5) {
-                        gameEnded = true
-                        engine?.let { engineInstance ->
-                            val winMessageNode = create3DWinMessage(engineInstance)
-                            nodes.add(winMessageNode)
-                        }
-
-                    }
-                } else {
-                    // Yanlış cevap
-                    toastMessage = "Yanlış cevap, tekrar deneyin."
-                    if (bubbles > 0) {
-                        bubbles--
-                        nodes.removeLastOrNull() // Son baloncuğu kaldır
-                    }
-                }
-                userInput = ""
-            }) {
-                androidx.compose.material3.Text("Onayla")
-            }
-        }
-
-        // Toast Mesajını Göster
-        LaunchedEffect(toastMessage) {
-            toastMessage?.let {
-                Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
-                toastMessage = null
-            }
-        }
-    }
-}
-
-// Rastgele işlem üreten fonksiyon
 fun generateRandomOperation(current: Int): Pair<String, Int> {
     val operations = listOf("+", "-", "*", "/")
     var operation: String
@@ -156,10 +44,10 @@ fun generateRandomOperation(current: Int): Pair<String, Int> {
     do {
         operation = operations.random()
         operand = when (operation) {
-            "+" -> Random.nextInt(1, 100 - current)
-            "-" -> Random.nextInt(1, current)
-            "*" -> Random.nextInt(2, minOf(10, 100 / current))
-            "/" -> Random.nextInt(2, 10).takeIf { current % it == 0 } ?: 1
+            "+" -> Random.nextInt(1, 10)
+            "-" -> Random.nextInt(1, current + 1)
+            "*" -> Random.nextInt(1, 10)
+            "/" -> Random.nextInt(1, 10).takeIf { current % it == 0 } ?: 1
             else -> 1
         }
     } while (!isResultValid(current, operation, operand))
@@ -167,7 +55,6 @@ fun generateRandomOperation(current: Int): Pair<String, Int> {
     return operation to operand
 }
 
-// İşlemi hesaplayan fonksiyon
 fun calculateOperation(current: Int, operation: Pair<String, Int>): Int {
     return when (operation.first) {
         "+" -> current + operation.second
@@ -178,7 +65,7 @@ fun calculateOperation(current: Int, operation: Pair<String, Int>): Int {
     }
 }
 
-// İşlem sonucunun geçerli olup olmadığını kontrol eden fonksiyon
+
 fun isResultValid(current: Int, operation: String, operand: Int): Boolean {
     val result = when (operation) {
         "+" -> current + operand
@@ -187,45 +74,250 @@ fun isResultValid(current: Int, operation: String, operand: Int): Boolean {
         "/" -> if (operand != 0 && current % operand == 0) current / operand else 0
         else -> current
     }
-    return result in 1..99
+    return result in 1..MAX_NUMBER
 }
-fun create3DNumberModel(engine: Engine, number: Int): ArModelNode {
-    return ArModelNode(
-        engine = engine,
-        modelGlbFileLocation = "models/number_$number.glb",
-        scaleToUnits = 0.5f
-    )
-}
+fun createCombinedNumberModel(
+    number: Int,
+    sceneView: ArSceneView,
+    position: Position,
+    scale: Float = 0.5f,
+    spacing: Float = 1.5f
+): List<ArModelNode> {
+    val nodes = mutableListOf<ArModelNode>()
+    val digits = number.toString().map { it.toString() } // Basamakları çıkar
 
-fun create3DOperationModel(engine: Engine, operation: Pair<String, Int>): ArModelNode {
-    val operationName = when (operation.first) {
-        "*" -> "carp" // Çarpma operatörü için "carp"
-        "/" -> "bol"  // Bölme operatörü için "bol"
-        else -> operation.first // "+" veya "-" olduğu gibi kullanılır
+    // Basamakları soldan sağa sıralı olacak şekilde oluştur
+    digits.forEachIndexed { index, digit ->
+        val digitPosition = Position(
+            position.x - ((digits.size - 1) / 2f * spacing) + index * spacing, // Ortalayarak sıralama
+            position.y,
+            position.z
+        )
+        val digitNode = create3DModel(digit, sceneView, digitPosition, scale)
+        nodes.add(digitNode)
     }
 
+    return nodes
+}
+
+
+fun create3DModel(
+    modelName: String,
+    sceneView: ArSceneView,
+    position: Position,
+    scale: Float = 0.5f
+): ArModelNode {
+    val glbFile = when (modelName) {
+        "+" -> "operation_plus.glb"
+        "-" -> "operation_minus.glb"
+        "*" -> "operation_carp.glb"
+        "/" -> "operation_bol.glb"
+        else -> "number_$modelName.glb" // Sayılar için
+    }
+    Log.d("ARGame", "3D Model Loaded: $glbFile at $position")
     return ArModelNode(
-        engine = engine,
-        modelGlbFileLocation = "models/operation_$operationName.glb",
-        scaleToUnits = 0.5f
+        sceneView.engine,
+        modelGlbFileLocation = "models/$glbFile",
+        scaleToUnits = scale,
+        centerOrigin = position
     )
 }
 
 
-
-fun create3DBubbleModel(engine: Engine, index: Int): ArModelNode {
+fun create3DWinMessage(sceneView: ArSceneView): ArModelNode {
     return ArModelNode(
-        engine = engine,
-        modelGlbFileLocation = "models/bubble.glb",
-        scaleToUnits = 0.3f
-    )
-}
-
-fun create3DWinMessage(engine: Engine): ArModelNode {
-    return ArModelNode(
-        engine = engine,
+        sceneView.engine,
         modelGlbFileLocation = "models/win_message.glb",
-        scaleToUnits = 1.0f
+        scaleToUnits = 1.5f, // Daha büyük ölçek
+        centerOrigin = Position(0f, 0f, -2f) // Daha merkezi bir pozisyon
     )
 }
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun ARGameScreen() {
+    val context = LocalContext.current
+    val nodes = remember { mutableStateListOf<ArModelNode>() }
+    var currentNumber by remember { mutableStateOf((1..10).random()) }
+    var currentOperation by remember { mutableStateOf(generateRandomOperation(currentNumber)) }
+    var userInput by remember { mutableStateOf("") }
+    var toastMessage by remember { mutableStateOf<String?>(null) }
+    var correctAnswers by remember { mutableStateOf(0) }
+    var gameEnded by remember { mutableStateOf(false) }
+    var arSceneView: ArSceneView? by remember { mutableStateOf(null) }
 
+    Box(modifier = Modifier.fillMaxSize()) {
+        // AR Scene Setup
+        ARScene(
+            modifier = Modifier.fillMaxSize(),
+            nodes = nodes,
+            planeRenderer = true,
+            onCreate = { arSceneViewInstance ->
+                arSceneView = arSceneViewInstance
+                arSceneViewInstance.lightEstimationMode = Config.LightEstimationMode.DISABLED
+                arSceneViewInstance.planeRenderer.isShadowReceiver = false
+            }
+        )
+
+        val MODEL_SPACING = 3f
+
+        // AR Model Güncellemesi
+        LaunchedEffect(currentNumber, currentOperation, gameEnded) {
+            arSceneView?.let { sceneView ->
+                // Sayılar ve operatörler sadece oyun bitmediyse gösterilir
+                if (!gameEnded) {
+                    nodes.forEach { it.destroy() }
+                    nodes.clear()
+
+                    // Sol sayı
+                    val leftNodes = createCombinedNumberModel(
+                        currentNumber,
+                        sceneView,
+                        Position(-MODEL_SPACING, 0f, -1f)
+                    )
+                    nodes.addAll(leftNodes)
+
+                    // Operatör
+                    val operationNode = create3DModel(
+                        currentOperation.first,
+                        sceneView,
+                        Position(0f, 0f, -1f)
+                    )
+                    nodes.add(operationNode)
+
+                    // Sağ sayı
+                    val rightNodes = createCombinedNumberModel(
+                        currentOperation.second,
+                        sceneView,
+                        Position(MODEL_SPACING, 0f, -1f)
+                    )
+                    nodes.addAll(rightNodes)
+                } else {
+                    // Oyun bittiğinde sadece Win mesajını göster
+                    nodes.forEach { it.destroy() }
+                    nodes.clear()
+
+                    val winNode = create3DWinMessage(sceneView)
+                    nodes.add(winNode)
+                }
+            }
+        }
+
+        // Kullanıcı girişi ve doğrulama
+        if (!gameEnded) {
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.BottomCenter
+            ) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    // Kullanıcı girişi TextField
+                    TextField(
+                        value = userInput,
+                        onValueChange = { input ->
+                            // Sadece sayılara izin ver
+                            userInput = input.filter { it.isDigit() }
+                        },
+                        label = { Text("Sonuç Girin") },
+                        keyboardOptions = KeyboardOptions.Default.copy(
+                            keyboardType = KeyboardType.Number, // Klavye tipi sayı
+                            imeAction = ImeAction.Done // Enter'a basınca gönder
+                        ),
+                        keyboardActions = KeyboardActions(
+                            onDone = {
+                                submitAnswer(
+                                    userInput,
+                                    currentNumber,
+                                    currentOperation,
+                                    onCorrect = {
+                                        toastMessage = "Doğru! Yeni sayınız: $it"
+                                        currentNumber = it
+                                        currentOperation = generateRandomOperation(currentNumber)
+                                        correctAnswers++
+
+                                        if (correctAnswers >= TARGET_BUBBLES) {
+                                            gameEnded = true
+                                        }
+                                    },
+                                    onIncorrect = {
+                                        toastMessage = "Yanlış cevap, tekrar deneyin."
+                                        correctAnswers = 0
+                                    }
+                                )
+                                userInput = "" // Girişi sıfırla
+                            }
+                        )
+                    )
+                    Button(onClick = {
+                        submitAnswer(
+                            userInput,
+                            currentNumber,
+                            currentOperation,
+                            onCorrect = {
+                                toastMessage = "Doğru! Yeni sayınız: $it"
+                                currentNumber = it
+                                currentOperation = generateRandomOperation(currentNumber)
+                                correctAnswers++
+
+                                if (correctAnswers >= TARGET_BUBBLES) {
+                                    gameEnded = true
+                                }
+                            },
+                            onIncorrect = {
+                                toastMessage = "Yanlış cevap, tekrar deneyin."
+                                correctAnswers = 0
+                            }
+                        )
+                        userInput = "" // Girişi sıfırla
+                    }) {
+                        Text("Onayla")
+                    }
+                }
+            }
+        } else {
+            // Oyun bittiğinde Yeniden Başlatma düğmesi
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                Button(onClick = {
+                    // Oyunu sıfırla
+                    gameEnded = false
+                    correctAnswers = 0
+                    currentNumber = (1..10).random()
+                    currentOperation = generateRandomOperation(currentNumber)
+                    nodes.forEach { it.destroy() }
+                    nodes.clear()
+                }) {
+                    Text("Oyunu Yeniden Başlat")
+                }
+            }
+        }
+
+        // Toast mesajı
+        LaunchedEffect(toastMessage) {
+            toastMessage?.let {
+                Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
+                toastMessage = null
+            }
+        }
+    }
+}
+
+// Cevabı değerlendirme fonksiyonu
+fun submitAnswer(
+    userInput: String,
+    currentNumber: Int,
+    currentOperation: Pair<String, Int>,
+    onCorrect: (Int) -> Unit,
+    onIncorrect: () -> Unit
+) {
+    val userAnswer = userInput.toIntOrNull()
+    if (userAnswer == null) {
+        return
+    }
+    val correctAnswer = calculateOperation(currentNumber, currentOperation)
+    if (userAnswer == correctAnswer) {
+        onCorrect(correctAnswer)
+    } else {
+        onIncorrect()
+    }
+}
