@@ -1,5 +1,6 @@
 # 🛫 Mathladder - AR Oyun Projesi
 ### Trello : https://trello.com/w/guncelkonularcalismaalani
+### Websitesi : [Mathladder](https://ismailavcidev.github.io/)
 ## 📜 Proje Özeti
 Bu proje, uçak içinde çocuklu ailelere yönelik bir eğlence sistemi olarak geliştirilmiştir. Android tabanlı artırılmış gerçeklik (AR) oyunu, çocukların uzun uçak yolculuklarında keyifli vakit geçirmesini sağlamayı hedefler. Kullanıcılar, matematiksel işlemleri çözerek ilerler ve başarıdan sonra ödüllerle karşılaşır.
 
@@ -118,7 +119,8 @@ Bu proje, özellikle çocuklu aileleri hedef alır:
    - APK oluşturuldu ve son cihaz testleri gerçekleştirildi.
 2. **Dokümantasyon Güncellemesi**:
    - Kullanıcı kılavuzu ve teknik dokümanlar tamamlandı.
-
+3. **Websitesi Oluşturulması**:
+   - Site oluşturuldu ve içerik eklendi.
 
 ---
 
