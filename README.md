@@ -32,6 +32,112 @@ Bu proje, özellikle çocuklu aileleri hedef alır:
 
 ---
 
+
+## 🗓 **5 Haftalık Gelişim Süreci**
+
+
+### **1. Hafta: Proje Planlama ve Dökümantasyon**
+#### 🎯 **Hedefler**
+- Projenin temel amacı, kapsamı ve hedef kitlesinin belirlenmesi.
+- Geliştirme sürecini yönetmek için **Trello** panosunun oluşturulması.
+- Gereksinim analizi ve dökümantasyonun hazırlanması.
+
+#### 🛠 **Yapılanlar**
+1. **Trello Panosu Kurulumu**:
+   - **Listeler**: "Planlama", "Devam Edenler", "Tamamlananlar".
+   - **Kartlar**: Her hafta yapılacak işler için detaylı kartlar oluşturuldu.
+2. **Proje Dökümantasyonu**:
+   - Proje tanımı, kullanıcı hikayeleri, kullanım senaryoları dökümante edildi.
+3. **Araştırma ve Tasarım**:
+   - Matematiksel işlemler algoritmalarının araştırılması.
+   - 3D modeller ve AR teknolojileri için uygun kaynakların incelenmesi.
+4. **Varsayımlar ve Kısıtlamalar**:
+   - Kullanılacak teknolojiler belirlendi: **Kotlin**, **ARCore**, **Android Studio**.
+
+---
+
+### **2. Hafta: AR ve UI/UX Tasarım Süreci**
+#### 🎯 **Hedefler**
+- Kullanıcı dostu arayüzlerin tasarlanması.
+- AR modellerinin seçimi ve entegrasyon için hazırlanması.
+
+#### 🛠 **Yapılanlar**
+1. **UI/UX Çalışmaları**:
+   - Modern bir tasarım trendine uygun yükleme ve oyun ekranları tasarlandı.
+   - **Figma** ile prototip oluşturuldu.
+2. **AR Modellerinin Seçimi**:
+   - **Sketchfab** ve **TurboSquid** gibi platformlardan 3D modeller seçildi.
+   - Modeller performans açısından değerlendirildi.
+
+
+---
+
+### **3. Hafta: Uygulama Geliştirme**
+#### 🎯 **Hedefler**
+- Matematik işlemlerini üreten algoritmaların geliştirilmesi.
+- ARCore entegrasyonunun yapılması.
+
+#### 🛠 **Yapılanlar**
+1. **Proje Kurulumu**:
+   - **Kotlin** ile temel proje başlatıldı.
+   - ARCore kütüphanesi projeye entegre edildi.
+2. **Matematiksel İşlem Algoritmaları**:
+   - Rastgele matematik işlemleri üreten ve kullanıcı girişlerini doğrulayan fonksiyonlar yazıldı.
+3. **AR Modelleri ve Animasyon**:
+   - 3D modeller uygulamaya eklendi ve kullanıcı etkileşimlerine uygun animasyonlar oluşturuldu.
+4. **UI Geliştirme**:
+   - Yükleme ekranı, oyun ekranı ve kazanan mesajı dinamik bir şekilde tasarlandı.
+5. **Test Süreci**:
+   - Kodlama sürecinde temel birim testleri yapıldı.
+
+---
+
+### **4. Hafta: Test ve Optimizasyon**
+#### 🎯 **Hedefler**
+- Uygulamanın tüm işlevlerinin detaylı test edilmesi.
+- Performans sorunlarının giderilmesi ve deneyimin iyileştirilmesi.
+
+#### 🛠 **Yapılanlar**
+1. **Fonksiyonel Testler**:
+   - Tüm kullanıcı senaryoları test edildi (ör. 5 doğru cevaptan sonra kazanan mesajı).
+2. **Performans Optimizasyonu**:
+   - AR modellerinin yükleme süresi ve uygulamanın genel performansı iyileştirildi.
+3. **Kullanıcı Testleri**:
+   - Akran çevresinden geri bildirim alındı.
+4. **Hata Ayıklama**:
+   - Tespit edilen hatalar giderildi ve kod temizliği yapıldı.
+
+---
+
+### **5. Hafta: Yayınlama ve Dağıtım**
+#### 🎯 **Hedefler**
+- Uygulamanın yayınlanması ve kullanıcılarla buluşturulması.
+
+#### 🛠 **Yapılanlar**
+1. **Uygulama Paketlemesi**:
+   - APK oluşturuldu ve son cihaz testleri gerçekleştirildi.
+2. **Dokümantasyon Güncellemesi**:
+   - Kullanıcı kılavuzu ve teknik dokümanlar tamamlandı.
+
+
+---
+
+## 📂 **Projenin Çalıştırılması**
+1. **Gereksinimler**:
+   - **Android Studio** yüklü bir bilgisayar.
+   - Uyumlu bir Android cihaz.
+2. **Adımlar**:
+   - Projeyi klonlayın:  
+     ```bash
+     git clone https://github.com/kullaniciadi/matematik-oyunu.git
+     ```
+   - Android Studio ile projeyi açın.
+   - Gerekli bağımlılıkları indirin ve uygulamayı çalıştırın.
+
+
+---
+
+
 ## 📂 Proje Yapısı
 ### 1. **Ana Uygulama (MainActivity.kt)**
 - Oyunun ana mekanikleri burada tanımlanır.
