@@ -1,0 +1,8 @@
+{
+  "users": [
+    { "id": 1, "username": "testuser", "password": "1234", "isPaid": true }
+  ],
+  "prices": [
+    { "type": "unlimited", "price": 49.99 }
+  ]
+}

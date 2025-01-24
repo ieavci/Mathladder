@@ -24,12 +24,17 @@ import io.github.sceneview.ar.ArSceneView
 import io.github.sceneview.math.Position
 import kotlin.random.Random
 
-class MainActivity : ComponentActivity() {
+class Game : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            ARGameScreen()
+            ARGameScreen(onPaymentRequired = {
+                // Burada ödeme yapılacak sayfaya yönlendirme yapılabilir
+                Toast.makeText(this, "Ödeme sayfasına yönlendiriliyorsunuz", Toast.LENGTH_SHORT).show()
+                // Ödeme sayfasına yönlendirme kodunu buraya ekleyebilirsiniz
+            })
         }
+
     }
 }
 
@@ -134,7 +139,7 @@ fun create3DWinMessage(sceneView: ArSceneView): ArModelNode {
 }
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ARGameScreen() {
+fun ARGameScreen(onPaymentRequired: () -> Unit) { // Burada onPaymentRequired parametresini ekledik
     val context = LocalContext.current
     val nodes = remember { mutableStateListOf<ArModelNode>() }
     var currentNumber by remember { mutableStateOf((1..10).random()) }
@@ -163,36 +168,19 @@ fun ARGameScreen() {
         // AR Model Güncellemesi
         LaunchedEffect(currentNumber, currentOperation, gameEnded) {
             arSceneView?.let { sceneView ->
-                // Sayılar ve operatörler sadece oyun bitmediyse gösterilir
                 if (!gameEnded) {
                     nodes.forEach { it.destroy() }
                     nodes.clear()
 
-                    // Sol sayı
-                    val leftNodes = createCombinedNumberModel(
-                        currentNumber,
-                        sceneView,
-                        Position(-MODEL_SPACING, 0f, -1f)
-                    )
+                    val leftNodes = createCombinedNumberModel(currentNumber, sceneView, Position(-MODEL_SPACING, 0f, -1f))
                     nodes.addAll(leftNodes)
 
-                    // Operatör
-                    val operationNode = create3DModel(
-                        currentOperation.first,
-                        sceneView,
-                        Position(0f, 0f, -1f)
-                    )
+                    val operationNode = create3DModel(currentOperation.first, sceneView, Position(0f, 0f, -1f))
                     nodes.add(operationNode)
 
-                    // Sağ sayı
-                    val rightNodes = createCombinedNumberModel(
-                        currentOperation.second,
-                        sceneView,
-                        Position(MODEL_SPACING, 0f, -1f)
-                    )
+                    val rightNodes = createCombinedNumberModel(currentOperation.second, sceneView, Position(MODEL_SPACING, 0f, -1f))
                     nodes.addAll(rightNodes)
                 } else {
-                    // Oyun bittiğinde sadece Win mesajını göster
                     nodes.forEach { it.destroy() }
                     nodes.clear()
 
@@ -204,53 +192,39 @@ fun ARGameScreen() {
 
         // Kullanıcı girişi ve doğrulama
         if (!gameEnded) {
-            Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.BottomCenter
-            ) {
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.BottomCenter) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    // Kullanıcı girişi TextField
                     TextField(
                         value = userInput,
-                        onValueChange = { input ->
-                            // Sadece sayılara izin ver
-                            userInput = input.filter { it.isDigit() }
-                        },
+                        onValueChange = { input -> userInput = input.filter { it.isDigit() } },
                         label = { Text("Sonuç Girin") },
                         keyboardOptions = KeyboardOptions.Default.copy(
-                            keyboardType = KeyboardType.Number, // Klavye tipi sayı
-                            imeAction = ImeAction.Done // Enter'a basınca gönder
+                            keyboardType = KeyboardType.Number,
+                            imeAction = ImeAction.Done
                         ),
-                        keyboardActions = KeyboardActions(
-                            onDone = {
-                                submitAnswer(
-                                    userInput,
-                                    currentNumber,
-                                    currentOperation,
-                                    onCorrect = {
-                                        toastMessage = "Doğru! Yeni sayınız: $it"
-                                        currentNumber = it
-                                        currentOperation = generateRandomOperation(currentNumber)
-                                        correctAnswers++
+                        keyboardActions = KeyboardActions(onDone = {
+                            submitAnswer(userInput, currentNumber, currentOperation,
+                                onCorrect = {
+                                    toastMessage = "Doğru! Yeni sayınız: $it"
+                                    currentNumber = it
+                                    currentOperation = generateRandomOperation(currentNumber)
+                                    correctAnswers++
 
-                                        if (correctAnswers >= TARGET_BUBBLES) {
-                                            gameEnded = true
-                                        }
-                                    },
-                                    onIncorrect = {
-                                        toastMessage = "Yanlış cevap, tekrar deneyin."
-                                        correctAnswers = 0
+                                    if (correctAnswers >= TARGET_BUBBLES) {
+                                        gameEnded = true
                                     }
-                                )
-                                userInput = "" // Girişi sıfırla
-                            }
-                        )
+                                },
+                                onIncorrect = {
+                                    toastMessage = "Yanlış cevap, tekrar deneyin."
+                                    correctAnswers = 0
+                                }
+                            )
+                            userInput = "" // Girişi sıfırla
+                        })
                     )
+
                     Button(onClick = {
-                        submitAnswer(
-                            userInput,
-                            currentNumber,
-                            currentOperation,
+                        submitAnswer(userInput, currentNumber, currentOperation,
                             onCorrect = {
                                 toastMessage = "Doğru! Yeni sayınız: $it"
                                 currentNumber = it
@@ -273,21 +247,13 @@ fun ARGameScreen() {
                 }
             }
         } else {
-            // Oyun bittiğinde Yeniden Başlatma düğmesi
-            Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
-            ) {
+            // Oyun bittiğinde ödeme sayfasına yönlendiren buton ekleniyor
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 Button(onClick = {
-                    // Oyunu sıfırla
-                    gameEnded = false
-                    correctAnswers = 0
-                    currentNumber = (1..10).random()
-                    currentOperation = generateRandomOperation(currentNumber)
-                    nodes.forEach { it.destroy() }
-                    nodes.clear()
+                    // Ödeme sayfasına yönlendir
+                    onPaymentRequired()
                 }) {
-                    Text("Oyunu Yeniden Başlat")
+                    Text("Ödeme Yap ve Devam Et")
                 }
             }
         }
